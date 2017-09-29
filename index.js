@@ -4,7 +4,6 @@
   var util = require('./util/util');
   var timeout = 1000;
 
-  // var nit = '295671015';
   models.empresa.findAll({
       order: [
         ['id_empresa', 'DESC']
@@ -15,13 +14,25 @@
     .then(function (params) {
       if (params.length > 0) {
         console.log('params.nit', params[0].nit);
+        var nitsFinal = nits.slice(nits.indexOf(params[0].nit), nits.length);
+        // aqu copiar lo que eta por else. reemplazando nitsFinal
       } else {
-        console.log("no hay nada. primera vez")
+        console.log('no hay nada. primera vez');
         util.iterarArray(nits, function (nit, callbackContinuar, callbackError) {
             setTimeout(function () {
               servicios.obtenerMatriculas(nit)
                 .then(function (resp) {
-                  console.log(resp);
+                  console.log(resp)
+                  if (resp.matriculas.length > 0) { //tiene matriculas
+
+                  } else { //no tiene matricualas
+                    models.empresa.create({
+                      nit,
+                      estado: 'SIN_MATRICULA'
+                    });
+                  }
+                  // inicio iterar por matriculas
+                  // fin iterar por matriculas
                   callbackContinuar();
                 })
                 .catch(function (respErr) {

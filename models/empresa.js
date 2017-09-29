@@ -16,12 +16,11 @@ module.exports = function (sequelize, DataTypes) {
         },
         resultado: {
             type: DataTypes.JSON,
-            allowNull: false
+            allowNull: true
         },
         estado: {
-            type: DataTypes.ENUM('ACTIVO', 'INACTIVO'),
-            allowNull: false,
-            defaultValue: 'INACTIVO'
+            type: DataTypes.ENUM('ACTIVO', 'INACTIVO', 'SIN_MATRICULA'),
+            allowNull: true
         }
     },
         {
