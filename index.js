@@ -1,5 +1,5 @@
   var servicios = require('./interoperabilidad/servicios_web');
-  var nits = require('./data/nits2');
+  var nits = require('./data/nits');
   var models = require('./models');
   var util = require('./util/util');
   var timeout = 1000;
