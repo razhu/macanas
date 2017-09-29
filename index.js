@@ -24,15 +24,40 @@
                 .then(function (resp) {
                   console.log(resp)
                   if (resp.matriculas.length > 0) { //tiene matriculas
-
+                    // inicio iterar por matriculas
+                    util.iterarArray(resp.matriculas, function (objMatricula, callbackContinuar, callbackError) {
+                        setTimeout(function () {
+                          servicios.obtenerInformacionEmpresa(objMatricula.matricula)
+                            .then(function (respM) {
+                              console.log('matricujla ', respM);
+                              var estado = '';
+                              typeof respM === 'object' ? estado = 'ACTIVO' : estado = 'INACTIVO';
+                              models.empresa.create({
+                                nit,
+                                matricula_comercio: objMatricula.matricula,
+                                resultado: respM,
+                                estado
+                              });
+                              callbackContinuar();
+                            })
+                            .catch(function (respErr) {
+                              callbackContinuar();
+                            });
+                        }, timeout);
+                      })
+                      .then(function (res) {
+                      })
+                      .catch(function (resErr) {
+                        console.log('err ', resErr);
+                      });
+                    // fin iterar por matriculas
                   } else { //no tiene matricualas
                     models.empresa.create({
                       nit,
                       estado: 'SIN_MATRICULA'
                     });
                   }
-                  // inicio iterar por matriculas
-                  // fin iterar por matriculas
+
                   callbackContinuar();
                 })
                 .catch(function (respErr) {
