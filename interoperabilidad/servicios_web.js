@@ -28,9 +28,9 @@ servicios.obtenerMatriculas = function (nit) {
       json: true
     };
     request.get(req, function (error, response, body) {
-      debug('FUNDEMPRESA - Respuesta matriculas', `NIT: ${nit}`, body.SrvMatriculaConsultaNitResult);
+      // debug('FUNDEMPRESA - Respuesta matriculas', `NIT: ${nit}`, body.SrvMatriculaConsultaNitResult);
       if (error) {
-        debug('FUNDEMPRESA - Error servicio', error);
+        // debug('FUNDEMPRESA - Error servicio', error);
         reject(error);
         return;
       }
@@ -46,7 +46,7 @@ servicios.obtenerMatriculas = function (nit) {
         });
       }
       if (lasmatriculas.length === 0) {
-        debug('FUNDEMPRESA - No tiene matrículas inscritas en FUNDEMPRESA');
+        // debug('FUNDEMPRESA - No tiene matrículas inscritas en FUNDEMPRESA');
         var mensaje = '';
         if (body === 'The upstream server is timing out') {
           mensaje = 'El servicio no esta disponible. Intente otra vez.';
@@ -113,22 +113,22 @@ servicios.obtenerInformacionEmpresa = function (nroMatricula) {
       json: true
     };
     request.get(req, function (error, response, body) {
-      debug('FUNDEMPRESA - Información matrícula ', body);
+      // debug('FUNDEMPRESA - Información matrícula ', body);
 
       if (error) {
-        debug('FUNDEMPRESA - Error Información matrícula ', error);
+        // debug('FUNDEMPRESA - Error Información matrícula ', error);
         reject(error);
         return;
       }
       var infoEmpresa;
       if (response.statusCode === 200) {
         if (!body.hasOwnProperty('detalle')) {
-          debug('FUNDEMPRESA - Información matrícula - No existe el detalle');
+          // debug('FUNDEMPRESA - Información matrícula - No existe el detalle');
           reject(body);
           return;
         }
         if (!body.detalle.hasOwnProperty('infoMatricula')) {
-          debug('FUNDEMPRESA - Información matrícula - No existe infoMatricula');
+          // debug('FUNDEMPRESA - Información matrícula - No existe infoMatricula');
           reject(body);
           return;
         }
@@ -188,7 +188,7 @@ servicios.obtenerInformacionEmpresa = function (nroMatricula) {
         });
         // Agregando sucursales de la matricula de comercio
         if (body.detalle.infoMatricula.hasOwnProperty('MatriculaDatosSucList1')) {
-          debug('FUNDEMPRESA - Información matrícula - La empresa tiene sucursales', body.detalle.infoMatricula.MatriculaDatosSucList1.MatriculaDatosSuc.length);
+          // debug('FUNDEMPRESA - Información matrícula - La empresa tiene sucursales', body.detalle.infoMatricula.MatriculaDatosSucList1.MatriculaDatosSuc.length);
           var arraySucursales = body.detalle.infoMatricula.MatriculaDatosSucList1.MatriculaDatosSuc;
           for (var index in arraySucursales) {
             var sucursalFund = arraySucursales[index];
