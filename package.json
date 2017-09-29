@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "moment": "^2.18.1",
     "pg": "^7.3.0",
     "request": "^2.83.0",
     "sequelize": "^4.11.3"

@@ -1,3 +1,6 @@
+const request = require('request');
+const config = require('../config/app');
+const moment = require('moment');
 var messages = {
   '404': 'No se pudo encontrar el servicio solicitado.',
   '508': 'El servicio no responde',
@@ -14,9 +17,7 @@ var messages = {
 var servicios = {};
 servicios.obtenerMatriculas = function (nit) {
   return new Promise(function (resolve, reject) {
-    var config = require('../config/app');
     var urlServicio = config.servicios_externos.funda_empresa.servicios.obtener_matriculas + nit + '/matriculas/';
-    var request = require('request');
     var req = {
       url: urlServicio,
       method: 'GET',
@@ -27,7 +28,9 @@ servicios.obtenerMatriculas = function (nit) {
       json: true
     };
     request.get(req, function (error, response, body) {
+      debug('FUNDEMPRESA - Respuesta matriculas', `NIT: ${nit}`, body.SrvMatriculaConsultaNitResult);
       if (error) {
+        debug('FUNDEMPRESA - Error servicio', error);
         reject(error);
         return;
       }
@@ -43,6 +46,7 @@ servicios.obtenerMatriculas = function (nit) {
         });
       }
       if (lasmatriculas.length === 0) {
+        debug('FUNDEMPRESA - No tiene matrículas inscritas en FUNDEMPRESA');
         var mensaje = '';
         if (body === 'The upstream server is timing out') {
           mensaje = 'El servicio no esta disponible. Intente otra vez.';
@@ -66,32 +70,40 @@ servicios.obtenerMatriculas = function (nit) {
     });
   });
 };
-
+/**
+ *
+ * @param {type} nroMatricula
+ * @param {type} callbackRespuesta
+ * @param {type} callbackError
+ * @returns {undefined}
+ */
 servicios.obtenerInformacionEmpresa = function (nroMatricula) {
   return new Promise(function (resolve, reject) {
-    var removerAcentos = function (text) {
-      var strOut = '';
-      if (text) {
-        strOut = text;
-      }
-      strOut = strOut.replace(/á/gi, 'a');
-      strOut = strOut.replace(/é/gi, 'e');
-      strOut = strOut.replace(/í/gi, 'i');
-      strOut = strOut.replace(/ó/gi, 'o');
-      strOut = strOut.replace(/ú/gi, 'u');
+    let removerAcentos = function (text) {
+      if (text && typeof text === 'string') {
+        text = text.toUpperCase();
+        let strOut = '';
+        if (text) {
+          strOut = text;
+        }
+        strOut = strOut.replace(/á/gi, 'a');
+        strOut = strOut.replace(/é/gi, 'e');
+        strOut = strOut.replace(/í/gi, 'i');
+        strOut = strOut.replace(/ó/gi, 'o');
+        strOut = strOut.replace(/ú/gi, 'u');
 
-      strOut = strOut.replace(/Á/gi, 'A');
-      strOut = strOut.replace(/É/gi, 'E');
-      strOut = strOut.replace(/Í/gi, 'I');
-      strOut = strOut.replace(/Ó/gi, 'O');
-      strOut = strOut.replace(/Ú/gi, 'U');
-      return (strOut.toUpperCase());
+        strOut = strOut.replace(/Á/gi, 'A');
+        strOut = strOut.replace(/É/gi, 'E');
+        strOut = strOut.replace(/Í/gi, 'I');
+        strOut = strOut.replace(/Ó/gi, 'O');
+        strOut = strOut.replace(/Ú/gi, 'U');
+        return (strOut.toUpperCase());
+      }
+      return '';
     };
 
-    var config = require('../config/app');
-    var urlServicio = config.servicios_externos.funda_empresa.servicios.info_matricula + nroMatricula;
-    var request = require('request');
-    var req = {
+    let urlServicio = config.servicios_externos.funda_empresa.servicios.info_matricula + nroMatricula;
+    let req = {
       url: urlServicio,
       method: 'GET',
       headers: {
@@ -101,17 +113,22 @@ servicios.obtenerInformacionEmpresa = function (nroMatricula) {
       json: true
     };
     request.get(req, function (error, response, body) {
+      debug('FUNDEMPRESA - Información matrícula ', body);
+
       if (error) {
+        debug('FUNDEMPRESA - Error Información matrícula ', error);
         reject(error);
         return;
       }
       var infoEmpresa;
       if (response.statusCode === 200) {
         if (!body.hasOwnProperty('detalle')) {
+          debug('FUNDEMPRESA - Información matrícula - No existe el detalle');
           reject(body);
           return;
         }
         if (!body.detalle.hasOwnProperty('infoMatricula')) {
+          debug('FUNDEMPRESA - Información matrícula - No existe infoMatricula');
           reject(body);
           return;
         }
@@ -136,7 +153,6 @@ servicios.obtenerInformacionEmpresa = function (nroMatricula) {
           fecha_inscripcion: null,
           sucursales: []
         };
-        var moment = require('moment');
         var matricula = body.detalle.infoMatricula;
         infoEmpresa.nit = parseInt(matricula.Nit) + '';
         infoEmpresa.matricula_comercio = (parseInt(matricula.IdMatricula)).toString();
@@ -153,16 +169,16 @@ servicios.obtenerInformacionEmpresa = function (nroMatricula) {
           nro_sucursal: 0,
           avenida_calle: matricula.CalleAv,
           numero: matricula.Nro,
-          zona: matricula.Zona ? matricula.Zona.toUpperCase() : null,
+          zona: typeof matricula.Zona === 'string' ? matricula.Zona.toUpperCase() : null,
           uv: matricula.Uv,
           manzana: matricula.Mza,
           edificio: matricula.Edificio,
           piso: matricula.Piso,
           nro_oficina: matricula.NroOficina,
           nro_casilla_postal: null,
-          municipio: matricula.Municipio.toUpperCase(),
-          provincia: matricula.Provincia.toUpperCase(),
-          departamento: removerAcentos(matricula.Departamento.toUpperCase()),
+          municipio: typeof matricula.Municipio === 'string' ? matricula.Municipio.toUpperCase() : null,
+          provincia: typeof matricula.Provincia === 'string' ? matricula.Provincia.toUpperCase() : null,
+          departamento: removerAcentos(matricula.Departamento),
           telefonos: matricula.Telefono ? matricula.Telefono : null,
           fax: null,
           correos: matricula.CorreoElectronico,
@@ -172,17 +188,18 @@ servicios.obtenerInformacionEmpresa = function (nroMatricula) {
         });
         // Agregando sucursales de la matricula de comercio
         if (body.detalle.infoMatricula.hasOwnProperty('MatriculaDatosSucList1')) {
+          debug('FUNDEMPRESA - Información matrícula - La empresa tiene sucursales', body.detalle.infoMatricula.MatriculaDatosSucList1.MatriculaDatosSuc.length);
           var arraySucursales = body.detalle.infoMatricula.MatriculaDatosSucList1.MatriculaDatosSuc;
           for (var index in arraySucursales) {
             var sucursalFund = arraySucursales[index];
             infoEmpresa.sucursales.push({
               nombre: sucursalFund.Sucursal,
               nro_sucursal: sucursalFund.IdSuc,
-              municipio: sucursalFund.Municipio.toUpperCase(),
-              zona: sucursalFund.Zona.toUpperCase(),
+              municipio: typeof sucursalFund.Municipio === 'string' ? sucursalFund.Municipio.toUpperCase() : null,
+              zona: typeof sucursalFund.Zona === 'string' ? sucursalFund.Zona.toUpperCase() : null,
               provincia: null,
               tipo_sucursal: '2',
-              departamento: removerAcentos(sucursalFund.Departamento.toUpperCase()),
+              departamento: removerAcentos(sucursalFund.Departamento),
               scompleto: sucursalFund.Representante,
               codigo_tipo_documento: sucursalFund.IdClase,
               nro_documento: sucursalFund.NumId,
@@ -203,7 +220,11 @@ servicios.obtenerInformacionEmpresa = function (nroMatricula) {
           data: body
         });
       } else {
-        resolve(messages[response.statusCode + '']);
+        resolve({
+          status: response.statusCode,
+          mensaje: messages[response.statusCode + ''],
+          data: body
+        });
       }
     }); // Fin del GET
   }); // Fin de la promesa
