@@ -2,8 +2,8 @@
   var nits = require('./data/nits2');
   var models = require('./models');
   var util = require('./util/util');
-  var timeout = 2000;
-  var timeout2 = 1000;
+  var timeout = 1000;
+  var timeout2 = 2000;
 
   models.empresa.findAll({
       order: [
