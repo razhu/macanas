@@ -17,7 +17,7 @@
         console.log('Problemas. Se reiniciara despues del NIT:', params[0].nit);
         var nitsFinal = nits.slice(nits.indexOf(params[0].nit), nits.length);
         // aqu copiar lo que eta por else. reemplazando nitsFinal
-        util.iterarArray(nits, function (nitsFinal, callbackContinuar, callbackError) {
+        util.iterarArray(nitsFinal, function (nit, callbackContinuar, callbackError) {
             setTimeout(function () {
               servicios.obtenerMatriculas(nit)
                 .then(function (resp) {
