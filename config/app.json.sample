@@ -1,13 +1,3 @@
 {
-  "servicios_externos": {
-    "funda_empresa": {
-      "jwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI2MGUyYmVkNDkwYTk0ZjMwOGE3YzliNmMwOGFiNTZkNiJ9.eBwF6yrM7h9kF9sWXxnNah_AgcZwgCJMsl5WPCWCj2M",
-      "url_status": "http://test.local.agetic.gob.bo/kong/fake/fundempresa/v1/status",
-      "servicios": {
-        "obtener_matriculas": "http://test.local.agetic.gob.bo/kong/fake/fundempresa/v3/nit/",
-        "info_matricula": "http://test.local.agetic.gob.bo/kong/fake/fundempresa/v2/matriculas/",
-        "buscar_representante": "http://test.local.agetic.gob.bo/kong/fake/fundempresa/v3/matriculas/{num_matricula}/representantes/"
-      }
-    }
-  }
+
 }
