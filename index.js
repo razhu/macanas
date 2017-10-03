@@ -1,9 +1,9 @@
-  var servicios = require('./interoperabilidad/servicios_web');
-  var nits = require('./data/nits');
-  var models = require('./models');
-  var util = require('./util/util');
-  var timeout = 1000;
-  var timeout2 = 2000;
+  let servicios = require('./interoperabilidad/servicios_web');
+  let nits = require('./data/nits2');
+  let models = require('./models');
+  let util = require('./util/util');
+  let timeout = 15000;
+  let timeout2 = 5000;
 
   models.empresa.findAll({
       order: [
@@ -13,112 +13,49 @@
       raw: true
     })
     .then(function (params) {
-      if (params.length > 0) {
-        console.log('Problemas. Se reiniciara despues del NIT:', params[0].nit);
-        var nitsFinal = nits.slice(nits.indexOf(params[0].nit), nits.length);
-        // aqu copiar lo que eta por else. reemplazando nitsFinal
-        util.iterarArray(nitsFinal, function (nit, callbackContinuar, callbackError) {
-            setTimeout(function () {
-              servicios.obtenerMatriculas(nit)
-                .then(function (resp) {
-                  if (resp.matriculas.length > 0) { //tiene matriculas
-                    // inicio iterar por matriculas
-                    resp.matriculas.forEach(function (objMatricula) {
-                      setTimeout(function () {
-                        console.log("NIT / Matricula : ", nit + " " + objMatricula.matricula)
-                        servicios.obtenerInformacionEmpresa(objMatricula.matricula)
-                          .then(function (respM) {
-                            var estado = '';
-                            typeof respM === 'object' ? estado = 'ACTIVO' : estado = 'INACTIVO';
-                            models.empresa.create({
-                              nit,
-                              matricula_comercio: objMatricula.matricula,
-                              resultado: respM,
-                              estado
-                            });
-                            callbackContinuar();
-                          })
-                          .catch(function (respErr) {
-                            callbackContinuar();
-                          });
-                      }, timeout);
-                    });
-                    // fin iterar por matriculas
-                  } else { //no tiene matricualas
-                    console.log("NIT :", nit)
-                    models.empresa.create({
-                      nit,
-                      estado: 'SIN_MATRICULA'
-                    });
-                  }
-                  callbackContinuar();
-                })
-                .catch(function (respErr) {
-                  console.log(respErr);
-                  callbackContinuar();
-                });
-            }, timeout2);
-          })
-          .then(function (res) {
-            console.log('TERMINADO');
-          })
-          .catch(function (resErr) {
-            console.log('err ', resErr);
-          });
-
-
-
-        
+      if (params.length > 0) { // console.log('Problemas. Se reiniciara despues del NIT:', params[0].nit);
+        // var nitsFinal = nits.slice(nits.indexOf(params[0].nit), nits.length);
+        // // aqu copiar lo que eta por else. reemplazando nitsFinal
       } else {
-        console.log('no hay nada. primera vez');
-        util.iterarArray(nits, function (nit, callbackContinuar, callbackError) {
-            setTimeout(function () {
-              servicios.obtenerMatriculas(nit)
-                .then(function (resp) {
-                  if (resp.matriculas.length > 0) { //tiene matriculas
-                    // inicio iterar por matriculas
-                    resp.matriculas.forEach(function (objMatricula) {
-                      setTimeout(function () {
-                        console.log("NIT / Matricula : ", nit + " " + objMatricula.matricula)
-                        servicios.obtenerInformacionEmpresa(objMatricula.matricula)
-                          .then(function (respM) {
-                            var estado = '';
-                            typeof respM === 'object' ? estado = 'ACTIVO' : estado = 'INACTIVO';
-                            models.empresa.create({
-                              nit,
-                              matricula_comercio: objMatricula.matricula,
-                              resultado: respM,
-                              estado
-                            });
-                            callbackContinuar();
-                          })
-                          .catch(function (respErr) {
-                            callbackContinuar();
-                          });
-                      }, timeout);
-                    });
-                    // fin iterar por matriculas
-                  } else { //no tiene matricualas
-                    console.log("NIT :", nit)
-                    models.empresa.create({
-                      nit,
-                      estado: 'SIN_MATRICULA'
-                    });
-                  }
-                  callbackContinuar();
-                })
-                .catch(function (respErr) {
-                  console.log(respErr);
-                  callbackContinuar();
+        async function nitf(elNit) {//async to obtain matriculas for a nit
+          return await servicios.obtenerMatriculas(elNit)
+        }
+        async function matrf(laMatr) {//async to obtain info business for a matricula
+          return await servicios.obtenerInformacionEmpresa(laMatr)
+        }
+        nits.forEach(function (nit) {
+          setTimeout(function() {
+          nitf(nit)
+            .then(resNit => {
+              if (resNit.matriculas.length > 0) { //tiene matriculas
+                resNit.matriculas.forEach(function (matri) {
+                  matrf(matri.matricula)
+                    .then(resMatr => {
+                      models.empresa.create({
+                        nit,
+                        nit_json: resNit,
+                        matricula_comercio: matri.matricula,
+                        matricula_comercio_json: resMatr,
+                        estado: "ACTIVO"
+                      })
+                    })
+                    .catch(resMatrErr => {
+                      console.log("resMatrErr ", resMatrErr);
+                    })
                 });
-            }, timeout2);
-          })
-          .then(function (res) {
-            console.log('TERMINADO');
-          })
-          .catch(function (resErr) {
-            console.log('err ', resErr);
-          });
+              } else { //no tiene matriculas
+                models.empresa.create({
+                  nit,
+                  nit_json: resNit,
+                  estado: "SIN_MATRICULA"
+                })
+              }
+            })
+            .catch(err => {
+              console.log('err ', err);
+            })
+          }, timeout);
+        });
       }
     })
     .catch(function (params) {
