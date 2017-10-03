@@ -40,7 +40,7 @@
             }
           })
           .catch(err => {
-            console.log('err ', err);
+            console.log('err '+ new Date(), err);
           })
       }, timeout * (i + 1));
     });
