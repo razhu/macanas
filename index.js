@@ -1,7 +1,7 @@
   let servicios = require('./interoperabilidad/servicios_web');
   let nits = require('./data/nits');
   let models = require('./models');
-  let timeout = 30000;
+  let timeout = 3000;
 
   let trabajo = function (misNits) {
     let nitsX = misNits
@@ -16,15 +16,15 @@
         nitf(nit)
           .then(resNit => {
             if (resNit.matriculas.length > 0) { //tiene matriculas
-              for (let [j, matri] of resNit.matriculas) {
+              for (let j in resNit.matriculas) {
                 setTimeout(function () {
-                  matrf(matri.matricula)
+                  matrf(resNit.matriculas[j].matricula)
                     .then(resMatr => {
                       if (resMatr.status == 200) {
                         models.empresa.create({
                           nit,
                           nit_json: resNit,
-                          matricula_comercio: matri.matricula,
+                          matricula_comercio: resNit.matriculas[j].matricula,
                           matricula_comercio_json: resMatr,
                           estado: "ACTIVO"
                         })
