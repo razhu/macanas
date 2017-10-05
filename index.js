@@ -16,21 +16,28 @@
         nitf(nit)
           .then(resNit => {
             if (resNit.matriculas.length > 0) { //tiene matriculas
-              resNit.matriculas.forEach(function (matri) {
-                matrf(matri.matricula)
-                  .then(resMatr => {
-                    models.empresa.create({
-                      nit,
-                      nit_json: resNit,
-                      matricula_comercio: matri.matricula,
-                      matricula_comercio_json: resMatr,
-                      estado: "ACTIVO"
+              for (let [j, matri] of resNit.matriculas) {
+                setTimeout(function () {
+                  matrf(matri.matricula)
+                    .then(resMatr => {
+                      if (resMatr.status == 200) {
+                        models.empresa.create({
+                          nit,
+                          nit_json: resNit,
+                          matricula_comercio: matri.matricula,
+                          matricula_comercio_json: resMatr,
+                          estado: "ACTIVO"
+                        })
+                      } else {
+                        console.log("Hubo un error. Tal vez el sistema esta abajo ", resMatr);
+                        return
+                      }
                     })
-                  })
-                  .catch(resMatrErr => {
-                    console.log("resMatrErr ", resMatrErr);
-                  })
-              });
+                    .catch(resMatrErr => {
+                      console.log("resMatrErr ", resMatrErr);
+                    })
+                }, 1000 * (j + 1));
+              }
             } else { //no tiene matriculas
               models.empresa.create({
                 nit,
@@ -45,9 +52,9 @@
       }, timeout * (i + 1));
     });
   }
-////////////////////  
-/////////////////// EMPIEZA AQUI
-////////////////////
+  ////////////////////  
+  /////////////////// EMPIEZA AQUI
+  ////////////////////
   models.empresa.findAll({
       order: [
         ['id_empresa', 'DESC']
