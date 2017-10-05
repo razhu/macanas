@@ -1,7 +1,7 @@
   let servicios = require('./interoperabilidad/servicios_web');
   let nits = require('./data/nits');
   let models = require('./models');
-  let timeout = 120000;
+  let timeout = 30000;
 
   let trabajo = function (misNits) {
     let nitsX = misNits
